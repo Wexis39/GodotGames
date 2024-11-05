@@ -1,0 +1,73 @@
+[gd_scene load_steps=6 format=3 uid="uid://dgysee3j243gh"]
+
+[ext_resource type="Texture2D" uid="uid://t5j34tgvw2eb" path="res://playerSprite.png" id="1_w5kfo"]
+
+[sub_resource type="GDScript" id="GDScript_jtwnw"]
+script/source = "extends CharacterBody2D
+
+@export var speed:int = 350
+signal laser(pos)
+var can_shoot:bool = true
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	position = Vector2(640,640) # Replace with function body.
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(_delta: float) -> void:
+	var direction = Input.get_vector(\"left\",\"right\",\"up\",\"down\")
+	velocity = direction * speed
+	move_and_slide()
+	if Input.is_action_just_pressed(\"shoot\") and can_shoot:
+		laser.emit($Marker2D.global_position)
+		can_shoot = false
+		$LaserTimer.start()
+
+
+func _on_laser_timer_timeout() -> void:
+	can_shoot = true
+"
+
+[sub_resource type="Gradient" id="Gradient_v1672"]
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_dexcs"]
+gradient = SubResource("Gradient_v1672")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_50ufp"]
+lifetime_randomness = 1.0
+particle_flag_disable_z = true
+emission_shape = 1
+emission_sphere_radius = 80.0
+angle_min = 1.07288e-05
+angle_max = 100.0
+gravity = Vector3(1, 98, 0)
+scale_min = 4.0
+scale_max = 14.0
+color = Color(1, 0.607843, 0, 1)
+color_ramp = SubResource("GradientTexture1D_dexcs")
+
+[node name="Player" type="CharacterBody2D"]
+collision_mask = 6
+script = SubResource("GDScript_jtwnw")
+
+[node name="PlayerImage" type="Sprite2D" parent="."]
+scale = Vector2(0.215285, 0.215285)
+texture = ExtResource("1_w5kfo")
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="PlayerImage"]
+position = Vector2(0, 240)
+amount = 17
+process_material = SubResource("ParticleProcessMaterial_50ufp")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="."]
+position = Vector2(-2.38419e-07, 1)
+scale = Vector2(0.213284, 0.213284)
+polygon = PackedVector2Array(-58.2607, -258.012, 54.0992, -253.85, 170.621, -37.4533, 228.881, 58.2607, 224.72, 178.943, 129.006, 191.428, 74.9066, 253.85, -74.9066, 249.689, -129.006, 191.428, -224.72, 178.943, -224.72, 62.4221, -174.782, -37.4533)
+
+[node name="Marker2D" type="Marker2D" parent="."]
+position = Vector2(0, -28)
+
+[node name="LaserTimer" type="Timer" parent="."]
+one_shot = true
+
+[connection signal="timeout" from="LaserTimer" to="." method="_on_laser_timer_timeout"]

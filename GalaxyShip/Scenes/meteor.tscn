@@ -1,0 +1,50 @@
+[gd_scene load_steps=3 format=3 uid="uid://rwhjbgnyllsf"]
+
+[sub_resource type="GDScript" id="GDScript_6kd4a"]
+script/source = "extends Area2D
+
+var rnd = RandomNumberGenerator.new()
+var speed:int
+var direction_x:float
+var rotation_speed:int
+signal collison
+
+func _ready() -> void:
+	var random_x = rnd.randi_range(0,1280)
+	var random_y = rnd.randi_range(-40,-80)
+	position += Vector2(random_x,random_y)
+	speed = rnd.randi_range(170,310)
+	direction_x = rnd.randf_range(-1,1)
+	rotation_speed = rnd.randi_range(40,100)
+	var meteor_path:String = \"res://meteor\"+str(rnd.randi_range(1,2))+\".png\"
+	$Sprite2D.texture = load(meteor_path)
+
+func _process(delta: float) -> void:
+	position += Vector2(direction_x,1) * speed * delta
+	rotation_degrees += rotation_speed * delta
+	
+func _on_body_entered(_body: Node2D) -> void:
+	collison.emit()
+
+
+func _on_area_entered(area: Area2D) -> void:
+	queue_free()
+	area.queue_free()
+"
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_m1fqv"]
+radius = 38.0526
+
+[node name="Meteor" type="Area2D"]
+collision_layer = 2
+collision_mask = 9
+script = SubResource("GDScript_6kd4a")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.166905, 0.166905)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_m1fqv")
+
+[connection signal="area_entered" from="." to="." method="_on_area_entered"]
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
